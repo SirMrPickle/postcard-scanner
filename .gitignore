@@ -1,6 +1,6 @@
-**/_INPUT/
-**/_RESCAN/
-**/_SIMPLE/
-**/counters/
-**/debug
-**/output
+_INPUT/
+_RESCAN/
+_SIMPLE/
+counters/**
+debug/**
+output/**
