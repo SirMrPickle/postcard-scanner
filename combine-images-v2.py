@@ -13,7 +13,8 @@ visualOutputDir = "debug/final"
 frontCoordsPath = "debug/front_coords.json"
 backCoordsPath = "debug/back_coords.json"
 
-noMatches = []
+noCardMatches = []
+noScanMatches = []
 
 # === Ensure output dir exists ===
 os.makedirs(visualOutputDir, exist_ok=True)
@@ -25,31 +26,37 @@ with open(frontCoordsPath, "r") as f:
 with open(backCoordsPath, "r") as f:
     backData = json.load(f)
 
+
 # === IoU-style matcher ===
 def boxMatch(fx, fy, bx, by):
     targetArea = 250  # px
     half = targetArea / 2
 
-    frontRectangle = Polygon([
-        (fx - half, fy - half),
-        (fx + half, fy - half),
-        (fx + half, fy + half),
-        (fx - half, fy + half),
-        (fx - half, fy - half),
-    ])
+    frontRectangle = Polygon(
+        [
+            (fx - half, fy - half),
+            (fx + half, fy - half),
+            (fx + half, fy + half),
+            (fx - half, fy + half),
+            (fx - half, fy - half),
+        ]
+    )
 
-    backRectangle = Polygon([
-        (bx - half, by - half),
-        (bx + half, by - half),
-        (bx + half, by + half),
-        (bx - half, by + half),
-        (bx - half, by - half),
-    ])
+    backRectangle = Polygon(
+        [
+            (bx - half, by - half),
+            (bx + half, by - half),
+            (bx + half, by + half),
+            (bx - half, by + half),
+            (bx - half, by - half),
+        ]
+    )
 
     intersection = frontRectangle.intersection(backRectangle)
     isValid = intersection.area >= 1000
 
     return intersection.area, isValid
+
 
 # === Loop through scans ===
 for frontScanKey in frontData:
@@ -89,22 +96,26 @@ for frontScanKey in frontData:
                 bestMatch = backCardID
 
         if bestMatch is None:
-            noMatches.append(frontCardID)
+            noCardMatches.append(frontCardID)
+            noScanMatches.append(scanPrefix)
         print(f"→ {frontCardID} ⇔ {bestMatch} (Overlap area = {bestScore:.2f})")
 
-        # === Always draw all red and blue boxes ===
+    # === Always draw all red and blue boxes ===
     for frontCardID, frontCoords in frontCards.items():
         fx, fy = frontCoords["x"], frontCoords["y"]
         frontTopLeft = (fx - 125, fy - 125)
         frontBottomRight = (fx + 125, fy + 125)
-        cv2.rectangle(overlay, frontTopLeft, frontBottomRight, (0, 0, 255), thickness=-1)  # Red for front
+        cv2.rectangle(
+            overlay, frontTopLeft, frontBottomRight, (0, 0, 255), thickness=-1
+        )  # Red for front
 
     for backCardID, backCoords in backCards.items():
         bx, by = backCoords["x"], backCoords["y"]
         backTopLeft = (bx - 125, by - 125)
         backBottomRight = (bx + 125, by + 125)
-        cv2.rectangle(overlay, backTopLeft, backBottomRight, (255, 0, 0), thickness=-1)  # Blue for back
-
+        cv2.rectangle(
+            overlay, backTopLeft, backBottomRight, (255, 0, 0), thickness=-1
+        )  # Blue for back
 
     # Blend original image and overlay
     alpha = 0.4
@@ -114,4 +125,5 @@ for frontScanKey in frontData:
     outputPath = os.path.join(visualOutputDir, f"{scanPrefix}_boxes.png")
     cv2.imwrite(outputPath, output)
 
-print(f"[DEBUG] {len(noMatches)} cards with `None` matches: {noMatches}")
+print(f"[DEBUG] {len(noScanMatches)} scans with 'None' matches :{noScanMatches}.\n [DEBUG] {len(noCardMatches)} cards with 'None':{noCardMatches}")
+# print(f"[DEBUG] {len(noCardMatches)} cards with `None` matches: {noCardMatches}")
