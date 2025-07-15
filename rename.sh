@@ -1,7 +1,7 @@
 #!/bin/bash
 
 input_dir="_INPUT"
-start_id=60  # Change this to whatever number you want to start from
+start_id=46  # Change this to whatever number you want to start from NOT THE LAST NUBMER OF THE NAMED FILE
 
 if [[ ! -d "$input_dir" ]]; then
   echo "Error: directory '$input_dir' not found."
