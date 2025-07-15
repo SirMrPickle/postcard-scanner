@@ -16,7 +16,7 @@ contourDebugPath = "debug/contoursFront.txt"
 contourCoordsPath = "debug/frontCoords.json"
 
 logDebug = False
-padSize = 10  # noise padding around edges
+padSize = 20  # noise padding around edges
 
 z, t = 30, 55  # background gray range
 lowerGray = np.array([z, z, z])
@@ -47,10 +47,12 @@ if os.path.exists(contourCoordsPath):
 else:
     contourCoords = {}
 
+
 # Helper to extract scan number for proper order
 def extractNumber(filename):
     match = re.search(r"sc(\d+)[_-]front", filename.lower())
     return int(match.group(1)) if match else float("inf")
+
 
 # Sort input files correctly
 inputFiles = sorted(glob.glob(os.path.join(inputDir, "*.png")), key=extractNumber)
@@ -75,7 +77,7 @@ for inputPath in inputFiles:
     debugDir = os.path.join(debugBaseDir, baseName)
     os.makedirs(debugDir, exist_ok=True)
 
-    # Step -1: Padding
+    # Step -1: padding
     h, w = image.shape[:2]
     padded = np.random.randint(
         z, t, (h + 2 * padSize, w + 2 * padSize, 3), dtype=np.uint8
@@ -83,7 +85,7 @@ for inputPath in inputFiles:
     padded[padSize : padSize + h, padSize : padSize + w] = image
     image = padded.copy()
 
-    # Step 0: Background masking
+    # Step 0: background masking
     grayMask = cv2.inRange(image, lowerGray, upperGray)
     nonBgMask = cv2.bitwise_not(grayMask)
     maskedImage = cv2.bitwise_and(image, image, mask=nonBgMask)
@@ -91,21 +93,41 @@ for inputPath in inputFiles:
     cv2.imwrite(os.path.join(debugDir, "00_grayMask.png"), grayMask)
     cv2.imwrite(os.path.join(debugDir, "00_nonBgMask.png"), nonBgMask)
 
-    # Step 1: Edge detection
+    # Step 1: edge detection
     gray = cv2.cvtColor(maskedImage, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
     edges = cv2.Canny(blurred, 50, 150)
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
+    K = 15
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (K, K)) # shtupid code
     closed = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
 
     cv2.imwrite(os.path.join(debugDir, "01_edges.png"), edges)
     cv2.imwrite(os.path.join(debugDir, "01b_closed.png"), closed)
 
-    # Step 2: Contour detection with hierarchy
+    # Step 2: contour detection with hierarchy
     contours, hierarchy = cv2.findContours(
         closed.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
     )
     print(f"[INFO] Found {len(contours)} contours (with hierarchy)")
+
+    # not a real step: but stores the top 10 contours                  V
+    topContours = sorted(contours, key=cv2.contourArea, reverse=True)[:10]
+    debugTopContours = image.copy()
+
+    for i, cnt in enumerate(topContours):
+        x, y, w, h = cv2.boundingRect(cnt)
+        cv2.rectangle(debugTopContours, (x, y), (x + w, y + h), (255, 0, 255), 2)
+        cv2.putText(
+            debugTopContours,
+            f"#{i} A={int(cv2.contourArea(cnt))}",
+            (x, y - 10),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.6,
+            (255, 0, 255),
+            2,
+        )
+
+    cv2.imwrite(os.path.join(debugDir, "03b_canidateContours.png"), debugTopContours)
 
     # Step 3: Filter contours (outermost only)
     filteredContours = []
@@ -118,18 +140,16 @@ for inputPath in inputFiles:
         aspect = w / hBox if hBox != 0 else 0
         areaDebugInfo.append((area, aspect, parent, (x, y, w, hBox)))
 
-        if (
-            parent == -1 and
-            area > 50000 and
-            1.2 < aspect < 2.5
-        ):
+        if parent == -1 and area > 50000 and 1.2 < aspect < 2.5:
             filteredContours.append(cnt)
 
     # Save debug area/aspect info
     areaDebugPath = os.path.join(debugDir, "02_contourAreas.txt")
     with open(areaDebugPath, "w") as f:
         for i, (area, aspect, parent, box) in enumerate(areaDebugInfo):
-            f.write(f"Contour {i}: Area={area:.2f}, Aspect={aspect:.2f}, Parent={parent}, Box={box}\n")
+            f.write(
+                f"Contour {i}: Area={area:.2f}, Aspect={aspect:.2f}, Parent={parent}, Box={box}\n"
+            )
 
     # Step 4: Sort by area and keep top 6
     postcardContours = sorted(filteredContours, key=cv2.contourArea, reverse=True)[:6]

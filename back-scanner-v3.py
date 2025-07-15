@@ -5,121 +5,162 @@ import glob
 import re
 import json
 
-# ======= back SCANNER (FORCED 6-CONTOUR MODE) ======= #
+# ======= BACK SCANNER (FORCED 6-CONTOUR MODE) ======= #
 
-input_dir = "_INPUT"
-output_dir = "output/back"
-debug_base_dir = "debug/back"
-seen_path = "counters/scanned_back.txt"
-index_path = "counters/index_back.txt"
-contour_debug = "debug/contours_back.txt"
-contour_coords_path = "debug/back_coords.json"
+inputDir = "_RESCAN"
+outputDir = "output/back"
+debugBaseDir = "debug/back"
+seenPath = "counters/scannedBack.txt"
+indexPath = "counters/indexBack.txt"
+contourDebugPath = "debug/contoursBack.txt"
+contourCoordsPath = "debug/backCoords.json"
 
-log_debug = False
-pad_size = 10  # noise padding around edges
+logDebug = False
+padSize = 20  # noise padding around edges
 
 z, t = 30, 55  # background gray range
-lower_gray = np.array([z, z, z])
-upper_gray = np.array([t, t, t])
+lowerGray = np.array([z, z, z])
+upperGray = np.array([t, t, t])
 
-os.makedirs(output_dir, exist_ok=True)
-os.makedirs(debug_base_dir, exist_ok=True)
-os.makedirs(os.path.dirname(seen_path), exist_ok=True)
+os.makedirs(outputDir, exist_ok=True)
+os.makedirs(debugBaseDir, exist_ok=True)
+os.makedirs(os.path.dirname(seenPath), exist_ok=True)
 
 # Load seen files
-if os.path.exists(seen_path):
-    with open(seen_path, "r") as f:
-        processed_files = set(f.read().splitlines())
+if os.path.exists(seenPath):
+    with open(seenPath, "r") as f:
+        processedFiles = set(f.read().splitlines())
 else:
-    processed_files = set()
+    processedFiles = set()
 
 # Load index
-if os.path.exists(index_path):
-    with open(index_path, "r") as f:
+if os.path.exists(indexPath):
+    with open(indexPath, "r") as f:
         index = int(f.read().strip())
 else:
     index = 1
 
 # Load or initialize contour coordinates
-if os.path.exists(contour_coords_path):
-    with open(contour_coords_path, "r") as f:
-        contour_coords = json.load(f)
+if os.path.exists(contourCoordsPath):
+    with open(contourCoordsPath, "r") as f:
+        contourCoords = json.load(f)
 else:
-    contour_coords = {}
+    contourCoords = {}
 
 
 # Helper to extract scan number for proper order
-def extract_number(filename):
+def extractNumber(filename):
     match = re.search(r"sc(\d+)[_-]back", filename.lower())
     return int(match.group(1)) if match else float("inf")
 
 
 # Sort input files correctly
-input_files = sorted(glob.glob(os.path.join(input_dir, "*.png")), key=extract_number)
-final_contours_debug = []
+inputFiles = sorted(glob.glob(os.path.join(inputDir, "*.png")), key=extractNumber)
+finalContoursDebug = []
 
-for input_path in input_files:
-    base_name = os.path.splitext(os.path.basename(input_path))[0]
+for inputPath in inputFiles:
+    baseName = os.path.splitext(os.path.basename(inputPath))[0]
 
-    if base_name in processed_files:
-        print(f"[SKIP] {base_name} already processed")
+    if baseName in processedFiles:
+        print(f"[SKIP] {baseName} already processed")
         continue
 
-    if "back" not in input_path.lower():
+    if "back" not in inputPath.lower():
         continue
 
-    print(f"\n[PROCESSING] {input_path}")
-    image = cv2.imread(input_path)
+    print(f"\n[PROCESSING] {inputPath}")
+    image = cv2.imread(inputPath)
     if image is None:
-        print(f"[ERROR] Cannot open {input_path}, skipping.")
+        print(f"[ERROR] Cannot open {inputPath}, skipping.")
         continue
 
-    debug_dir = os.path.join(debug_base_dir, base_name)
-    os.makedirs(debug_dir, exist_ok=True)
+    debugDir = os.path.join(debugBaseDir, baseName)
+    os.makedirs(debugDir, exist_ok=True)
 
-    # Step -1: Padding
+    # Step -1: padding
     h, w = image.shape[:2]
     padded = np.random.randint(
-        z, t, (h + 2 * pad_size, w + 2 * pad_size, 3), dtype=np.uint8
+        z, t, (h + 2 * padSize, w + 2 * padSize, 3), dtype=np.uint8
     )
-    padded[pad_size : pad_size + h, pad_size : pad_size + w] = image
+    padded[padSize : padSize + h, padSize : padSize + w] = image
     image = padded.copy()
 
-    # Step 0: Background masking
-    gray_mask = cv2.inRange(image, lower_gray, upper_gray)
-    non_bg_mask = cv2.bitwise_not(gray_mask)
-    masked_image = cv2.bitwise_and(image, image, mask=non_bg_mask)
+    # Step 0: background masking
+    grayMask = cv2.inRange(image, lowerGray, upperGray)
+    nonBgMask = cv2.bitwise_not(grayMask)
+    maskedImage = cv2.bitwise_and(image, image, mask=nonBgMask)
 
-    cv2.imwrite(os.path.join(debug_dir, "00_gray_mask.png"), gray_mask)
-    cv2.imwrite(os.path.join(debug_dir, "00_non_bg_mask.png"), non_bg_mask)
+    cv2.imwrite(os.path.join(debugDir, "00_grayMask.png"), grayMask)
+    cv2.imwrite(os.path.join(debugDir, "00_nonBgMask.png"), nonBgMask)
 
-    # Step 1: Edge detection
-    gray = cv2.cvtColor(masked_image, cv2.COLOR_BGR2GRAY)
+    # Step 1: edge detection
+    gray = cv2.cvtColor(maskedImage, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
     edges = cv2.Canny(blurred, 50, 150)
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
+    K = 15
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (K, K)) # shtupid code    
     closed = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
+    cv2.imwrite(os.path.join(debugDir, "01_edges.png"), edges)
+    cv2.imwrite(os.path.join(debugDir, "01b_closed.png"), closed)
 
-    cv2.imwrite(os.path.join(debug_dir, "01_edges.png"), edges)
-    cv2.imwrite(os.path.join(debug_dir, "01b_closed.png"), closed)
-
-    # Step 2: Contour detection
-    contours, _ = cv2.findContours(
-        closed.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    # Step 2: contour detection with hierarchy
+    contours, hierarchy = cv2.findContours(
+        closed.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
     )
-    print(f"[INFO] Found {len(contours)} contours")
+    print(f"[INFO] Found {len(contours)} contours (with hierarchy)")
 
-    # Step 3: Sort all contours by area, keep top 6
-    contours_sorted = sorted(contours, key=cv2.contourArea, reverse=True)
-    postcard_contours = contours_sorted[:6]  # FORCE 6 even if some are bad                        <- FORCE AMOUNT OF CONTOURS
+    # not a real step: but stores the top 10 contours                  V
+    topContours = sorted(contours, key=cv2.contourArea, reverse=True)[:10]
+    debugTopContours = image.copy()
 
-    # Step 4: Debug visuals
-    debug_boxes = image.copy()
-    for i, cnt in enumerate(postcard_contours):
+    for i, cnt in enumerate(topContours):
         x, y, w, h = cv2.boundingRect(cnt)
-        cv2.rectangle(debug_boxes, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.rectangle(debugTopContours, (x, y), (x + w, y + h), (255, 0, 255), 2)
         cv2.putText(
-            debug_boxes,
+            debugTopContours,
+            f"#{i} A={int(cv2.contourArea(cnt))}",
+            (x, y - 10),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.6,
+            (255, 0, 255),
+            2,
+        )
+
+    cv2.imwrite(os.path.join(debugDir, "03b_canidateContours.png"), debugTopContours)
+
+    # Step 3: Filter contours (outermost only)
+    filteredContours = []
+    areaDebugInfo = []
+
+    for cnt, h in zip(contours, hierarchy[0]):
+        parent = h[3]  # -1 means no parent
+        x, y, w, hBox = cv2.boundingRect(cnt)
+        area = cv2.contourArea(cnt)
+        aspect = w / hBox if hBox != 0 else 0
+        areaDebugInfo.append((area, aspect, parent, (x, y, w, hBox)))
+
+        if parent == -1 and area > 50000 and 1.2 < aspect < 2.5:
+            filteredContours.append(cnt)
+
+    # Save debug area/aspect info
+    areaDebugPath = os.path.join(debugDir, "02_contourAreas.txt")
+    with open(areaDebugPath, "w") as f:
+        for i, (area, aspect, parent, box) in enumerate(areaDebugInfo):
+            f.write(
+                f"Contour {i}: Area={area:.2f}, Aspect={aspect:.2f}, Parent={parent}, Box={box}\n"
+            )
+
+    # Step 4: Sort by area and keep top 6
+    postcardContours = sorted(filteredContours, key=cv2.contourArea, reverse=True)[:6]
+    print(f"[INFO] Filtered down to {len(postcardContours)} candidate contours")
+
+    # Step 5: Debug visuals
+    debugBoxes = image.copy()
+    for i, cnt in enumerate(postcardContours):
+        x, y, w, h = cv2.boundingRect(cnt)
+        cv2.rectangle(debugBoxes, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.putText(
+            debugBoxes,
             str(i),
             (x, y - 5),
             cv2.FONT_HERSHEY_SIMPLEX,
@@ -128,13 +169,13 @@ for input_path in input_files:
             2,
         )
 
-    cv2.imwrite(os.path.join(debug_dir, "03_all_boxes.png"), debug_boxes)
+    cv2.imwrite(os.path.join(debugDir, "03_allBoxes.png"), debugBoxes)
 
-    # Step 4.5: Save contour center boxes in clean format
-    contour_coords[base_name] = {}
-    cardNumForFile = 0  # Track card number per input file
+    # Step 5.5: Save contour center coords
+    contourCoords[baseName] = {}
+    cardNumForFile = 0
 
-    for cnt in postcard_contours:
+    for cnt in postcardContours:
         M = cv2.moments(cnt)
         if M["m00"] != 0:
             cX = int(M["m10"] / M["m00"])
@@ -144,11 +185,11 @@ for input_path in input_files:
 
         cardNumForFile += 1
         cardName = f"card{index + cardNumForFile - 1:04d}"
-        contour_coords[base_name][cardName] = {"x": cX, "y": cY}
+        contourCoords[baseName][cardName] = {"x": cX, "y": cY}
 
-    # Step 5: Warp, rotate, save
-    saved_count = 0
-    for cnt in postcard_contours:
+    # Step 6: Warp, rotate, and save
+    savedCount = 0
+    for cnt in postcardContours:
         rect = cv2.minAreaRect(cnt)
         box = cv2.boxPoints(rect).astype(np.intp)
         width, height = int(rect[1][0]), int(rect[1][1])
@@ -157,39 +198,38 @@ for input_path in input_files:
             print("[WARN] Skipping contour with zero width/height")
             continue
 
-        src_pts = box.astype("float32")
-        dst_pts = np.array(
+        srcPts = box.astype("float32")
+        dstPts = np.array(
             [[0, height - 1], [0, 0], [width - 1, 0], [width - 1, height - 1]],
             dtype="float32",
         )
 
-        M = cv2.getPerspectiveTransform(src_pts, dst_pts)
+        M = cv2.getPerspectiveTransform(srcPts, dstPts)
         warped = cv2.warpPerspective(image, M, (width, height))
 
-        # Rotate to landscape
         if warped.shape[0] > warped.shape[1]:
             warped = cv2.rotate(warped, cv2.ROTATE_90_CLOCKWISE)
 
-        out_name = f"card{index:04d}_back.png"
-        cv2.imwrite(os.path.join(output_dir, out_name), warped)
-        print(f"[SAVED] {out_name}")
+        outName = f"card{index:04d}_back.png"
+        cv2.imwrite(os.path.join(outputDir, outName), warped)
+        print(f"[SAVED] {outName}")
         index += 1
-        saved_count += 1
+        savedCount += 1
 
-    processed_files.add(base_name)
-    final_contours_debug.append(f"{base_name}: {saved_count}")
+    processedFiles.add(baseName)
+    finalContoursDebug.append(f"{baseName}: {savedCount}")
 
 # Final save
-with open(seen_path, "w") as f:
-    f.write("\n".join(sorted(processed_files)))
+with open(seenPath, "w") as f:
+    f.write("\n".join(sorted(processedFiles)))
 
-with open(index_path, "w") as f:
+with open(indexPath, "w") as f:
     f.write(str(index))
 
-with open(contour_debug, "w") as f:
-    f.write("\n".join(final_contours_debug))
+with open(contourDebugPath, "w") as f:
+    f.write("\n".join(finalContoursDebug))
 
-with open(contour_coords_path, "w") as f:
-    json.dump(contour_coords, f, indent=2)
+with open(contourCoordsPath, "w") as f:
+    json.dump(contourCoords, f, indent=2)
 
 print("\n[DONE] All back scans processed.")

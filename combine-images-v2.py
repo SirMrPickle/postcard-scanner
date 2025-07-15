@@ -10,8 +10,8 @@ backImageDir = "output/back"
 inputScanDir = "_INPUT"
 visualOutputDir = "debug/final"
 
-frontCoordsPath = "debug/front_coords.json"
-backCoordsPath = "debug/back_coords.json"
+frontCoordsPath = "debug/frontCoords.json"
+backCoordsPath = "debug/backCoords.json"
 
 noCardMatches = []
 noScanMatches = []
