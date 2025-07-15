@@ -1,21 +1,9 @@
-TO RE-SCAN
-
-BACKS:
-16
-26
-35
-37
+Missing Contours:
+sc16-back: 5
+sc45-front: 5
 
 
 None Overlap Scans:
 
-16f - 93
-[DONE] 17b - 101 
-22b - 132
-24b - 141
-25b - 146
-34b - 203
-35b - 207, 208
-45f - 270
-
-[DEBUG] 9 scans with `None` matches :['sc16', 'sc17', 'sc22', 'sc24', 'sc25', 'sc34', 'sc35', 'sc35', 'sc45'].
+[DEBUG] 7 scans with 'None' matches :['sc16', 'sc22', 'sc24', 'sc34', 'sc35', 'sc35', 'sc35'].
+[DEBUG] 7 cards with 'None':['card0093', 'card0132', 'card0141', 'card0203', 'card0207', 'card0208', 'card0209']
