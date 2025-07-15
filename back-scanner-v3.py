@@ -7,7 +7,7 @@ import json
 
 # ======= BACK SCANNER (FORCED 6-CONTOUR MODE) ======= #
 
-inputDir = "_RESCAN"
+inputDir = "_INPUT"
 outputDir = "output/back"
 debugBaseDir = "debug/back"
 seenPath = "counters/scannedBack.txt"
