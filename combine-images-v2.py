@@ -112,4 +112,4 @@ for frontScanKey in frontData:
     outputPath = os.path.join(visualOutputDir, f"{scanPrefix}_boxes.png")
     cv2.imwrite(outputPath, output)
 
-print(f"[DEBUG] Cards with `None` matches: {noMatches}")
+print(f"[DEBUG] {len(noMatches)} cards with `None` matches: {noMatches}")
