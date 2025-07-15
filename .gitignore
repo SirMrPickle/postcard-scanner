@@ -1,6 +1,17 @@
+# Ignore these directories and everything in them
 _INPUT/
 _RESCAN/
 _SIMPLE/
-counters/**
-debug/**
-output/**
+counters/
+
+**/_INPUT/
+**/_RESCAN/
+**/_SIMPLE/
+**/counters/
+
+# Also ignore debug and output folders and their contents
+debug/
+output/
+
+**/debug/
+**/output/
