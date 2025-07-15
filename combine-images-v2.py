@@ -92,17 +92,19 @@ for frontScanKey in frontData:
             noMatches.append(frontCardID)
         print(f"→ {frontCardID} ⇔ {bestMatch} (Overlap area = {bestScore:.2f})")
 
-        # Draw front box in red
+        # === Always draw all red and blue boxes ===
+    for frontCardID, frontCoords in frontCards.items():
+        fx, fy = frontCoords["x"], frontCoords["y"]
         frontTopLeft = (fx - 125, fy - 125)
         frontBottomRight = (fx + 125, fy + 125)
-        cv2.rectangle(overlay, frontTopLeft, frontBottomRight, (0, 0, 255), thickness=-1)
+        cv2.rectangle(overlay, frontTopLeft, frontBottomRight, (0, 0, 255), thickness=-1)  # Red for front
 
-        # Draw matched back box in blue if it exists
-        if bestMatch and bestMatch in backCards:
-            bx, by = backCards[bestMatch]["x"], backCards[bestMatch]["y"]
-            backTopLeft = (bx - 125, by - 125)
-            backBottomRight = (bx + 125, by + 125)
-            cv2.rectangle(overlay, backTopLeft, backBottomRight, (255, 0, 0), thickness=-1)
+    for backCardID, backCoords in backCards.items():
+        bx, by = backCoords["x"], backCoords["y"]
+        backTopLeft = (bx - 125, by - 125)
+        backBottomRight = (bx + 125, by + 125)
+        cv2.rectangle(overlay, backTopLeft, backBottomRight, (255, 0, 0), thickness=-1)  # Blue for back
+
 
     # Blend original image and overlay
     alpha = 0.4

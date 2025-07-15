@@ -9,9 +9,11 @@ counters/
 **/_SIMPLE/
 **/counters/
 
-# Also ignore debug and output folders and their contents
 debug/
 output/
 
 **/debug/
 **/output/
+
+# MacOS hidden file...
+**/.DS_Store
