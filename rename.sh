@@ -1,17 +1,15 @@
 #!/bin/bash
 
-input_dir="_INPUT"
-start_id=46  # Change this to whatever number you want to start from NOT THE LAST NUBMER OF THE NAMED FILE
+input_dir="RAW"
+start_id=47  # Start numbering here
 
 if [[ ! -d "$input_dir" ]]; then
   echo "Error: directory '$input_dir' not found."
   exit 1
 fi
 
-files=()
-while IFS= read -r line; do
-  files+=("$line")
-done < <(ls "$input_dir" | grep '^SimpleScanStation[0-9]\{14\}_[0-9]\+\.png$' | sort)
+# Get list of files matching pattern, sort numerically by suffix NOT lexicographically, but by SUFFIX. Much better
+files=($(ls "$input_dir" | grep '^SimpleScanStation[0-9]\{14\}_[0-9]\+\.png$' | sort -t '_' -k2 -n))
 
 count=$start_id
 total=${#files[@]}

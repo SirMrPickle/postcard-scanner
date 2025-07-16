@@ -6,6 +6,7 @@ import re
 import json
 import time
 
+START = time.time()
 # ======= FRONT SCANNER (OPTIMIZED & DEBUGGED) ======= #
 
 inputDir = "_INPUT"
@@ -18,7 +19,7 @@ contourCoordsPath = "debug/frontCoords.json"
 
 logDebug = False
 padSize = 20
-resizeFactor = 0.75
+resizeFactor = 0.85
 
 z, t = 30, 55
 lowerGray = np.array([z, z, z])
@@ -191,3 +192,5 @@ with open(contourCoordsPath, "w") as f:
     json.dump(contourCoords, f, indent=2)
 
 print(f"\n[COMPLETE] All front scans processed in {time.time() - totalStart:.2f}s")
+END = time.time()
+print(f"Raw time: {END-START:.2f}s")
