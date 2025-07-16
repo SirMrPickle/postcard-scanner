@@ -1,20 +1,11 @@
 Missing Contours:
-sc39-back: 4
-sc47-back: 0
-sc48-back: 1
-sc55-back: 0
-sc57-back: 5
-
-sc11-front: 4
-sc51-front: 4
-sc54-front: 0
-sc56-front: 0
-sc58-front: 0
+sc48-front: 0
+sc55-front: 4
 sc59-front: 0
+sc61-front: 0
 
-
-[DEBUG] 28 scans with 'None' matches :['sc24', 'sc34', 'sc35', 'sc35', 'sc35', 'sc39', 'sc39', 'sc46', 'sc46', 'sc47', 'sc47', 'sc47', 'sc47', 'sc47', 'sc47', 'sc48', 'sc48', 'sc48', 'sc48', 'sc48', 'sc48', 'sc55', 'sc55', 'sc55', 'sc55', 'sc55', 'sc55', 'sc57'].
-[DEBUG] 28 cards with 'None':['card0139', 'card0201', 'card0205', 'card0206', 'card0207', 'card0227', 'card0231', 'card0263', 'card0266', 'card0269', 'card0270', 'card0271', 'card0272', 'card0273', 'card0274', 'card0275', 'card0276', 'card0277', 'card0278', 'card0279', 'card0280', 'card0309', 'card0310', 'card0311', 'card0312', 'card0313', 'card0314', 'card0320']
-
-
-(366-28)/366 = 92.35%
+sc36-back: 5
+sc51-back: 0
+sc52-back: 1
+sc57-back: 0
+sc59-back: 0

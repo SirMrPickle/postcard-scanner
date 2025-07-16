@@ -19,7 +19,7 @@ contourCoordsPath = "debug/frontCoords.json"
 
 logDebug = False
 padSize = 20
-resizeFactor = 0.85
+resizeFactor = 0.75
 
 z, t = 30, 55
 lowerGray = np.array([z, z, z])
@@ -114,7 +114,7 @@ for inputPath in inputFiles:
         aspect = w / hBox if hBox != 0 else 0
         areaDebugInfo.append((area, aspect, parent, (x, y, w, hBox)))
 
-        if parent == -1 and area > 40000 and 1.0 < aspect < 3.0:
+        if parent == -1 and area > 40000 and 0.59 < aspect < 3.0:
             filteredContours.append(cnt)
 
     areaDebugPath = os.path.join(debugDir, "02_contourAreas.txt")
