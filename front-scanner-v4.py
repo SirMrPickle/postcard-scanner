@@ -9,6 +9,15 @@ import time
 START = time.time()
 # ======= FRONT SCANNER (OPTIMIZED & DEBUGGED) ======= #
 
+'''
+Time Estimations:
+
+f- 78.84/61 = 1.2924590164
+b- 77.77/61 = 1.2749180328
+avg: 1.2836885246
+    =(78.84/61+77.77/61)/2
+'''
+
 inputDir = "_INPUT"
 outputDir = "output/front"
 debugBaseDir = "debug/front"

@@ -3,9 +3,20 @@ sc48-front: 0
 sc55-front: 4
 sc59-front: 0
 sc61-front: 0
+    =20
 
 sc36-back: 5
 sc51-back: 0
 sc52-back: 1
 sc57-back: 0
 sc59-back: 0
+    =24
+
+
+Missing Contours:
+sc11-front: 4
+    =2
+
+sc39-back: 5
+sc47-back: 5
+    =2
