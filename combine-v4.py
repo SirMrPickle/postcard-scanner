@@ -4,6 +4,7 @@ import cv2
 from shapely.geometry import Polygon
 import time
 import numpy as np
+import pytesseract
 
 """
 Time Estimations:
@@ -90,6 +91,29 @@ def pad(image, width=WIDTH, height=HEIGHT):
     background[padTop : padTop + h, padLeft : padLeft + w] = image
     return background
 
+def getImageOrientation(image):
+    try:
+        osd = pytesseract.image_to_osd(image)
+        for line in osd.split('\n'):
+            if 'Rotate:' in line:
+                return int(line.split(':')[1].strip())
+    except pytesseract.TesseractError as e:
+        print(f"[WARN] OSD failed: {e}. Defaulting rotation to 0.")
+        return 0
+    return 0
+
+def rotateImage(image, angle):
+    if angle == 0:
+        return image
+    elif angle == 90:
+        return cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    elif angle == 180:
+        return cv2.rotate(image, cv2.ROTATE_180)
+    elif angle == 270:
+        return cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
+    else:
+        return image  # fallback
+
 
 # === Loop through scans ===
 totalStart = time.time()
@@ -152,6 +176,9 @@ for frontScanKey, frontCards in frontData.items():
 
             frontImage = horizontalOrient(frontImage)
             backImage = horizontalOrient(backImage)
+            
+            frontImage = rotateImage(frontImage, getImageOrientation(frontImage))
+            backImage = rotateImage(backImage, getImageOrientation(backImage))
 
             # Stack vertically, centered horizontally
             stackedHeight = frontImage.shape[0] + backImage.shape[0]
