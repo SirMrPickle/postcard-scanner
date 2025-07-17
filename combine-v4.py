@@ -1,10 +1,10 @@
+import cv2
+import numpy as np
 import os
 import json
-import cv2
-from shapely.geometry import Polygon
 import time
-import numpy as np
 import pytesseract
+from shapely.geometry import Polygon
 
 """
 Time Estimations:
