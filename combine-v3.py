@@ -4,6 +4,11 @@ import cv2
 from shapely.geometry import Polygon
 import time
 
+'''
+Time Estimations:
+30.86/61 
+    = 0.5059016393 Seconds/Combine
+'''
 # === Paths ===
 frontImageDir = "output/front"
 backImageDir = "output/back"
@@ -80,8 +85,14 @@ for frontScanKey, frontCards in frontData.items():
             noCardMatches.append(frontCardID)
             noScanMatches.append(scanPrefix)
         else:
-            area, _ = boxMatch(fx, fy, backCards[bestMatch]["x"], backCards[bestMatch]["y"])
+            bx, by = backCards[bestMatch]["x"], backCards[bestMatch]["y"]
+            area, _ = boxMatch(fx, fy, bx, by)
             print(f"→ {frontCardID} ⇔ {bestMatch} (Overlap area = {area:.2f})")
+
+            # track bad matches as well as plain old `none`s
+            if area < 10000:
+                noCardMatches.append(frontCardID)
+                noScanMatches.append(scanPrefix)
 
     # Draw front (red) and back (blue) boxes
     for coords in frontCards.values():
@@ -97,7 +108,10 @@ for frontScanKey, frontCards in frontData.items():
     outPath = os.path.join(visualOutputDir, f"{scanPrefix}_boxes.png")
     cv2.imwrite(outPath, blended)
 
-# Final debug output
-print(f"[DEBUG] {len(noScanMatches)} scans with 'None' matches: {noScanMatches}")
-print(f"[DEBUG] {len(noCardMatches)} cards with 'None' matches: {noCardMatches}")
+# Deduplicate <- goated word
+noScanMatches = sorted(set(noScanMatches))
+noCardMatches = sorted(set(noCardMatches))
+
+print(f"\n[DEBUG] {len(noScanMatches)} scans with weak matches: {noScanMatches}")
+print(f"[DEBUG] {len(noCardMatches)} cards with weak matches: {noCardMatches}")
 print(f"[COMPLETE] Matching completed in {time.time() - totalStart:.2f} seconds")

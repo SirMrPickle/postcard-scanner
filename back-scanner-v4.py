@@ -9,6 +9,15 @@ import time
 START = time.time()
 # ======= BACK SCANNER (OPTIMIZED & DEBUGGED) ======= #
 
+'''
+Time Estimations:
+
+f- 78.84/61 = 1.2924590164
+b- 77.77/61 = 1.2749180328
+avg: 1.2836885246 Seconds/Scan
+    =(78.84/61+77.77/61)/2
+'''
+
 inputDir = "_INPUT"
 outputDir = "output/back"
 debugBaseDir = "debug/back"
@@ -47,12 +56,17 @@ if os.path.exists(contourCoordsPath):
 else:
     contourCoords = {}
 
+if os.path.exists(contourDebugPath):
+    with open(contourDebugPath, "r") as f:
+        finalContoursDebug = f.read().splitlines()
+else:
+    finalContoursDebug = []
+
 def extractNumber(filename):
     match = re.search(r"sc(\d+)[_-]back", filename.lower())
     return int(match.group(1)) if match else float("inf")
 
 inputFiles = sorted(glob.glob(os.path.join(inputDir, "*.png")), key=extractNumber)
-finalContoursDebug = []
 totalStart = time.time()
 
 for inputPath in inputFiles:
@@ -192,5 +206,4 @@ with open(contourCoordsPath, "w") as f:
     json.dump(contourCoords, f, indent=2)
 
 print(f"\n[COMPLETE] All back scans processed in {time.time() - totalStart:.2f}s")
-END = time.time()
-print(f"Raw time: {END-START:.2f}s")
+print(f"Raw time: {time.time()-START:.2f}s")
