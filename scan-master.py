@@ -6,7 +6,7 @@ sV = 4
 frontScript = "python3 front-scanner-v" + str(sV) + ".py"
 backScript = "python3 back-scanner-v" + str(sV) + ".py"
 
-cV = 3
+cV = 4
 combineScript = "python3 combine-v" + str(cV) + ".py"
 
 

@@ -177,9 +177,13 @@ for frontScanKey, frontCards in frontData.items():
             frontImage = horizontalOrient(frontImage)
             backImage = horizontalOrient(backImage)
             
+            
+            '''
+            This doesnt quite work right. To fix later
             frontImage = rotateImage(frontImage, getImageOrientation(frontImage))
             backImage = rotateImage(backImage, getImageOrientation(backImage))
-
+            '''
+            
             # Stack vertically, centered horizontally
             stackedHeight = frontImage.shape[0] + backImage.shape[0]
             stackedWidth = max(frontImage.shape[1], backImage.shape[1])
