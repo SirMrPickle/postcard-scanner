@@ -11,6 +11,7 @@ Time Estimations:
 30.86/61 
     = 0.5059016393 Seconds/Combine
 """
+
 # === Paths ===
 frontImageDir = "output/front"
 backImageDir = "output/back"
@@ -91,16 +92,18 @@ def pad(image, width=WIDTH, height=HEIGHT):
     background[padTop : padTop + h, padLeft : padLeft + w] = image
     return background
 
+
 def getImageOrientation(image):
     try:
         osd = pytesseract.image_to_osd(image)
-        for line in osd.split('\n'):
-            if 'Rotate:' in line:
-                return int(line.split(':')[1].strip())
+        for line in osd.split("\n"):
+            if "Rotate:" in line:
+                return int(line.split(":")[1].strip())
     except pytesseract.TesseractError as e:
         print(f"[WARN] OSD failed: {e}. Defaulting rotation to 0.")
         return 0
     return 0
+
 
 def rotateImage(image, angle):
     if angle == 0:
@@ -176,14 +179,13 @@ for frontScanKey, frontCards in frontData.items():
 
             frontImage = horizontalOrient(frontImage)
             backImage = horizontalOrient(backImage)
-            
-            
-            '''
+
+            """
             This doesnt quite work right. To fix later
             frontImage = rotateImage(frontImage, getImageOrientation(frontImage))
             backImage = rotateImage(backImage, getImageOrientation(backImage))
-            '''
-            
+            """
+
             # Stack vertically, centered horizontally
             stackedHeight = frontImage.shape[0] + backImage.shape[0]
             stackedWidth = max(frontImage.shape[1], backImage.shape[1])
@@ -191,10 +193,16 @@ for frontScanKey, frontCards in frontData.items():
             front_x = (stackedWidth - frontImage.shape[1]) // 2
             back_x = (stackedWidth - backImage.shape[1]) // 2
 
-            stackedImage = np.full((stackedHeight, stackedWidth, 3), 255, dtype=np.uint8)  # white bg
+            stackedImage = np.full(
+                (stackedHeight, stackedWidth, 3), 255, dtype=np.uint8
+            )  # white bg
 
-            stackedImage[0:frontImage.shape[0], front_x:front_x+frontImage.shape[1]] = frontImage
-            stackedImage[frontImage.shape[0]:, back_x:back_x+backImage.shape[1]] = backImage
+            stackedImage[
+                0 : frontImage.shape[0], front_x : front_x + frontImage.shape[1]
+            ] = frontImage
+            stackedImage[
+                frontImage.shape[0] :, back_x : back_x + backImage.shape[1]
+            ] = backImage
 
             # Pad stacked image to 8.5x11
             finalImage = pad(stackedImage)
@@ -209,7 +217,6 @@ for frontScanKey, frontCards in frontData.items():
             # Save final combined image using front card name
             outFilePath = os.path.join(outputDir, f"{frontCardID}.png")
             cv2.imwrite(outFilePath, finalImage)
-
 
     # Draw front (red) and back (blue) boxes
     for coords in frontCards.values():

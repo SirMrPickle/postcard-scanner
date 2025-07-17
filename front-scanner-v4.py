@@ -9,14 +9,14 @@ import time
 START = time.time()
 # ======= FRONT SCANNER (OPTIMIZED & DEBUGGED) ======= #
 
-'''
+"""
 Time Estimations:
 
 f- 78.84/61 = 1.2924590164
 b- 77.77/61 = 1.2749180328
 avg: 1.2836885246 Seconds/Scan
     =(78.84/61+77.77/61)/2
-'''
+"""
 
 inputDir = "_INPUT"
 outputDir = "output/front"
@@ -62,9 +62,11 @@ if os.path.exists(contourDebugPath):
 else:
     finalContoursDebug = []
 
+
 def extractNumber(filename):
     match = re.search(r"sc(\d+)[_-]front", filename.lower())
     return int(match.group(1)) if match else float("inf")
+
 
 inputFiles = sorted(glob.glob(os.path.join(inputDir, "*.png")), key=extractNumber)
 totalStart = time.time()
@@ -90,7 +92,9 @@ for inputPath in inputFiles:
     os.makedirs(debugDir, exist_ok=True)
 
     h, w = image.shape[:2]
-    padded = np.random.randint(z, t, (h + 2 * padSize, w + 2 * padSize, 3), dtype=np.uint8)
+    padded = np.random.randint(
+        z, t, (h + 2 * padSize, w + 2 * padSize, 3), dtype=np.uint8
+    )
     padded[padSize : padSize + h, padSize : padSize + w] = image
     image = padded.copy()
 
@@ -107,7 +111,9 @@ for inputPath in inputFiles:
 
     cv2.imwrite(os.path.join(debugDir, "01b_closed.png"), closed)
 
-    contours, hierarchy = cv2.findContours(closed.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(
+        closed.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
+    )
     print(f"[INFO] Found {len(contours)} contours")
 
     topContours = sorted(contours, key=cv2.contourArea, reverse=True)[:10]
@@ -115,7 +121,15 @@ for inputPath in inputFiles:
     for i, cnt in enumerate(topContours):
         x, y, w, h = cv2.boundingRect(cnt)
         cv2.rectangle(closedDebug, (x, y), (x + w, y + h), (255, 0, 255), 2)
-        cv2.putText(closedDebug, f"#{i} A={int(cv2.contourArea(cnt))}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 255), 2)
+        cv2.putText(
+            closedDebug,
+            f"#{i} A={int(cv2.contourArea(cnt))}",
+            (x, y - 10),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.6,
+            (255, 0, 255),
+            2,
+        )
     cv2.imwrite(os.path.join(debugDir, "03b_candidateContours.png"), closedDebug)
 
     filteredContours = []
@@ -134,7 +148,9 @@ for inputPath in inputFiles:
     areaDebugPath = os.path.join(debugDir, "02_contourAreas.txt")
     with open(areaDebugPath, "w") as f:
         for i, (area, aspect, parent, box) in enumerate(areaDebugInfo):
-            f.write(f"Contour {i}: Area={area:.2f}, Aspect={aspect:.2f}, Parent={parent}, Box={box}\n")
+            f.write(
+                f"Contour {i}: Area={area:.2f}, Aspect={aspect:.2f}, Parent={parent}, Box={box}\n"
+            )
 
     postcardContours = sorted(filteredContours, key=cv2.contourArea, reverse=True)[:6]
     print(f"[INFO] Filtered to {len(postcardContours)} candidate contours")
@@ -144,7 +160,15 @@ for inputPath in inputFiles:
         scaledCnt = (cnt / resizeFactor).astype(np.int32)
         x, y, w, h = cv2.boundingRect(scaledCnt)
         cv2.rectangle(acceptedDebug, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        cv2.putText(acceptedDebug, str(i), (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+        cv2.putText(
+            acceptedDebug,
+            str(i),
+            (x, y - 5),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.8,
+            (0, 255, 0),
+            2,
+        )
     cv2.imwrite(os.path.join(debugDir, "03_allBoxes.png"), acceptedDebug)
 
     contourCoords[baseName] = {}
@@ -175,7 +199,10 @@ for inputPath in inputFiles:
             continue
 
         srcPts = box.astype("float32")
-        dstPts = np.array([[0, height - 1], [0, 0], [width - 1, 0], [width - 1, height - 1]], dtype="float32")
+        dstPts = np.array(
+            [[0, height - 1], [0, 0], [width - 1, 0], [width - 1, height - 1]],
+            dtype="float32",
+        )
 
         M = cv2.getPerspectiveTransform(srcPts, dstPts)
         warped = cv2.warpPerspective(image, M, (width, height))

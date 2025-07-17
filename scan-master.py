@@ -12,7 +12,8 @@ combineScript = "python3 combine-v" + str(cV) + ".py"
 
 def run(script):
     subprocess.run(script, shell=True)
-    
+
+
 # Phase 1
 thread1 = threading.Thread(target=run, args=(frontScript,))
 thread2 = threading.Thread(target=run, args=(backScript,))
