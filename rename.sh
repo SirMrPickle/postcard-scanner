@@ -1,7 +1,7 @@
 #!/bin/bash
 
 input_dir="_RAW"
-start_id=62  # Start numbering here
+start_id=86  # Start numbering here
 
 if [[ ! -d "$input_dir" ]]; then
   echo "Error: directory '$input_dir' not found."

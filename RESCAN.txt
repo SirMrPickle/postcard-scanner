@@ -1,3 +1,8 @@
+** Scanning Notes **
+    False Positives
+        sc69 = 5
+        sc99 = 3
+
 Missing Contours:
 sc48-front: 0
 sc55-front: 4
@@ -25,3 +30,22 @@ Weak Combinations:
 
 [DEBUG] 8 scans with weak matches: ['sc24', 'sc34', 'sc35', 'sc46', 'sc48', 'sc51', 'sc57', 'sc61']
 [DEBUG] 33 cards with weak matches: ['card0139', 'card0141', 'card0199', 'card0203', 'card0207', 'card0208', 'card0209', 'card0271', 'card0274', 'card0283', 'card0284', 'card0285', 'card0286', 'card0287', 'card0288', 'card0301', 'card0302', 'card0303', 'card0304', 'card0305', 'card0306', 'card0337', 'card0338', 'card0339', 'card0340', 'card0341', 'card0342', 'card0361', 'card0362', 'card0363', 'card0364', 'card0365', 'card0366']
+
+
+Missing Contours:
+sc74-front: 5
+sc83-front: 5
+    =2
+
+sc81-back: 3
+sc86-back: 4
+sc88-back: 5
+sc89-back: 5
+
+
+Missing Contours:
+sc74-front: 5
+sc83-front: 5
+sc88-front: 5
+    =3
+
