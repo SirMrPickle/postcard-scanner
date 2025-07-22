@@ -37,14 +37,4 @@ sc74-front: 5
 sc83-front: 5
     =2
 
-sc81-back: 3
-sc86-back: 4
-sc88-back: 5
-sc89-back: 5
-
-
-Missing Contours:
-sc74-front: 5
-sc83-front: 5
-sc88-front: 5
-    =3
+(100% on backside)
