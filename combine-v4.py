@@ -23,8 +23,10 @@ outputDir = "output/final"
 frontCoordsPath = "debug/frontCoords.json"
 backCoordsPath = "debug/backCoords.json"
 
-noCardMatches = []
+weakCardMatches = []
+weakScanMatches = []
 noScanMatches = []
+
 
 # === For image saving and stacking ===
 DPI = 250
@@ -151,7 +153,7 @@ for frontScanKey, frontCards in frontData.items():
         )[0]
 
         if bestMatch is None:
-            noCardMatches.append(frontCardID)
+            weakCardMatches.append(frontCardID)
             noScanMatches.append(scanPrefix)
         else:
             bx, by = backCards[bestMatch]["x"], backCards[bestMatch]["y"]
@@ -159,11 +161,13 @@ for frontScanKey, frontCards in frontData.items():
             print(f"→ {frontCardID} ⇔ {bestMatch} (Overlap area = {area:.2f})")
 
             # track bad matches as well as plain old `none`s
-            if area < 10000:
-                noCardMatches.append(frontCardID)
+            if area == 0:
                 noScanMatches.append(scanPrefix)
+            if area < 10000:
+                weakCardMatches.append(frontCardID)
+                weakScanMatches.append(scanPrefix)
 
-        if bestMatch is not None and area >= 10000:
+        if bestMatch is not None and area >= 5000:
             # load back the images again
             frontCardPath = os.path.join(frontImageDir, f"{frontCardID}_front.png")
             backCardPath = os.path.join(backImageDir, f"{bestMatch}_back.png")
@@ -237,9 +241,12 @@ for frontScanKey, frontCards in frontData.items():
     cv2.imwrite(outPath, blended)
 
 # Deduplicate <- goated word
+weakScanMatches = sorted(set(weakScanMatches))
+weakCardMatches = sorted(set(weakCardMatches))
 noScanMatches = sorted(set(noScanMatches))
-noCardMatches = sorted(set(noCardMatches))
 
-print(f"\n[DEBUG] {len(noScanMatches)} scans with weak matches: {noScanMatches}")
-print(f"[DEBUG] {len(noCardMatches)} cards with weak matches: {noCardMatches}")
+
+print(f"\n[DEBUG] {len(weakScanMatches)} scans with weak matches: {weakScanMatches}")
+print(f"[DEBUG] {len(weakCardMatches)} cards with weak matches: {weakCardMatches}")
+print(f"[DEBUG] {len(noScanMatches)} scans with NO matches: {noScanMatches}")
 print(f"[COMPLETE] Matching completed in {time.time() - totalStart:.2f} seconds")
