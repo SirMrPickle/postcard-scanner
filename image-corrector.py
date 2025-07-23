@@ -5,6 +5,7 @@ from PIL import Image
 # POC right now, I don't know how much use this is going to serve me.
 # Some are rotated correctly off the bat, byt others arent. It isnt all standard
 showSkip = False
+rotateIDs = ["100", "30"]
 
 def rotateToPortrait(imagePath):
     try:
@@ -21,7 +22,7 @@ def rotateToPortrait(imagePath):
 
 def processPath(path):
     if os.path.isfile(path):
-        if path.lower().endswith(".png"):
+        if path.lower().endswith(".png") and path.lower().startswith("sc" + "somehow the ID here"):
             rotateToPortrait(path)
     elif os.path.isdir(path):
         for root, _, files in os.walk(path):

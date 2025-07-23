@@ -32,7 +32,6 @@ resizeFactor = 0.75
 consolePrintAll = True
 timeDebug = False
 
-
 z, t = 30, 55
 lowerGray = np.array([z, z, z])
 upperGray = np.array([t, t, t])
