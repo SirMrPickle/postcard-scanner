@@ -36,6 +36,7 @@ z, t = 30, 55
 lowerGray = np.array([z, z, z])
 upperGray = np.array([t, t, t])
 
+# === DIRECTORY SETUP ===
 os.makedirs(outputDir, exist_ok=True)
 os.makedirs(debugBaseDir, exist_ok=True)
 os.makedirs(os.path.dirname(seenPath), exist_ok=True)
@@ -65,6 +66,7 @@ else:
     finalContoursDebug = []
 
 
+# === FUNCTIONS ===
 def extractNumber(filename):
     match = re.search(r"sc(\d+)[_-]front", filename.lower())
     return int(match.group(1)) if match else float("inf")
@@ -96,37 +98,47 @@ for inputPath in inputFiles:
     os.makedirs(debugDir, exist_ok=True)
 
     # Pad image with noise
-    if timeDebug: padT = time.time()
+    if timeDebug:
+        padT = time.time()
     h, w = image.shape[:2]
     padded = np.random.randint(
         z, t, (h + 2 * padSize, w + 2 * padSize, 3), dtype=np.uint8
     )
     padded[padSize : padSize + h, padSize : padSize + w] = image
     image = padded.copy()
-    if timeDebug: print(f"[TIME] Padding took: {time.time() - padT:.4}s")
+    if timeDebug:
+        print(f"[TIME] Padding took: {time.time() - padT:.4}s")
 
     # Mask gray background
-    if timeDebug: maskT = time.time()
+    if timeDebug:
+        maskT = time.time()
     grayMask = cv2.inRange(image, lowerGray, upperGray)
     nonBgMask = cv2.bitwise_not(grayMask)
     maskedImage = cv2.bitwise_and(image, image, mask=nonBgMask)
-    if timeDebug: print(f"[TIME] Masking took: {time.time() - maskT:.4}s")
+    if timeDebug:
+        print(f"[TIME] Masking took: {time.time() - maskT:.4}s")
 
     # Resize and preprocess
-    if timeDebug: preT = time.time()
+    if timeDebug:
+        preT = time.time()
     resized = cv2.resize(maskedImage, (0, 0), fx=resizeFactor, fy=resizeFactor)
     gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (3, 3), 0)
     edges = cv2.Canny(blurred, 50, 150)
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (13, 13))
     closed = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
-    if timeDebug: print(f"[TIME] Preprocessing took: {time.time() - preT:.4}s")
+    if timeDebug:
+        print(f"[TIME] Preprocessing took: {time.time() - preT:.4}s")
 
     # Find contours
-    if timeDebug: contourT = time.time()
-    contours, hierarchy = cv2.findContours(closed.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    if timeDebug:
+        contourT = time.time()
+    contours, hierarchy = cv2.findContours(
+        closed.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
+    )
     print(f"[INFO] Found {len(contours)} contours")
-    if timeDebug: print(f"[TIME] Contour detection took: {time.time() - contourT:.4}s")
+    if timeDebug:
+        print(f"[TIME] Contour detection took: {time.time() - contourT:.4}s")
 
     # Filter contours based on area, aspect, and hierarchy
     filteredContours = []
@@ -146,39 +158,60 @@ for inputPath in inputFiles:
     postcardContours = sorted(filteredContours, key=cv2.contourArea, reverse=True)[:6]
     print(f"[INFO] Filtered to {len(postcardContours)} candidate contours")
 
-    # Always save cardContours.png — the 6 strongest contours
-    if timeDebug: saveT = time.time()
+    # ALWAYS save cardContours.png — the top (not always 6) strongest contours
+    if timeDebug:
+        saveT = time.time()
     cardContoursDebug = image.copy()
     for i, cnt in enumerate(postcardContours):
         scaledCnt = (cnt / resizeFactor).astype(np.int32)
         x, y, wBox, hBox = cv2.boundingRect(scaledCnt)
         cv2.rectangle(cardContoursDebug, (x, y), (x + wBox, y + hBox), (0, 255, 0), 2)
-        cv2.putText(cardContoursDebug, str(i), (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+        cv2.putText(
+            cardContoursDebug,
+            str(i),
+            (x, y - 5),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.8,
+            (0, 255, 0),
+            2,
+        )
     cv2.imwrite(os.path.join(debugDir, "cardContours.png"), cardContoursDebug)
-    if timeDebug: print(f"[TIME] Saving debug contour image took: {time.time() - saveT:.4}s")
+    if timeDebug:
+        print(f"[TIME] Saving debug contour image took: {time.time() - saveT:.4}s")
 
-    # Conditionally save debug images only if fewer than 6 postcard contours found
+    # Save debug images only if fewer than 6 postcard contours found. Assumes that 6 is the propper number.
     if len(postcardContours) < 6:
-        # Save closed (morphology) image
         cv2.imwrite(os.path.join(debugDir, "closedBoxes.png"), closed)
 
-        # Draw and save topContours.png (top 10 largest contours)
+        # Draw and save `topContours.png` (top 10 largest contours)
         topContours = sorted(contours, key=cv2.contourArea, reverse=True)[:10]
         topContoursDebug = resized.copy()
         for i, cnt in enumerate(topContours):
             x, y, wBox, hBox = cv2.boundingRect(cnt)
-            cv2.rectangle(topContoursDebug, (x, y), (x + wBox, y + hBox), (255, 0, 255), 2)
-            cv2.putText(topContoursDebug, f"#{i} A={int(cv2.contourArea(cnt))}", (x, y - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 255), 2)
+            cv2.rectangle(
+                topContoursDebug, (x, y), (x + wBox, y + hBox), (255, 0, 255), 2
+            )
+            cv2.putText(
+                topContoursDebug,
+                f"#{i} A={int(cv2.contourArea(cnt))}",
+                (x, y - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.6,
+                (255, 0, 255),
+                2,
+            )
         cv2.imwrite(os.path.join(debugDir, "topContours.png"), topContoursDebug)
 
-        # Save contour data text file
+        # save contour info/data
         with open(os.path.join(debugDir, "contourData.txt"), "w") as f:
             for i, (area, aspect, parent, box) in enumerate(areaDebugInfo):
-                f.write(f"Contour {i}: Area={area:.2f}, Aspect={aspect:.2f}, Parent={parent}, Box={box}\n")
+                f.write(
+                    f"Contour {i}: Area={area:.2f}, Aspect={aspect:.2f}, Parent={parent}, Box={box}\n"
+                )
 
-    # Update contourCoords with centroid info
-    if timeDebug: coordT = time.time()
+    # update contourCoords with centroid info
+    if timeDebug:
+        coordT = time.time()
     contourCoords[baseName] = {}
     cardNumForFile = 0
     for cnt in postcardContours:
@@ -190,10 +223,12 @@ for inputPath in inputFiles:
         cardNumForFile += 1
         cardName = f"card{index + cardNumForFile - 1:04d}"
         contourCoords[baseName][cardName] = {"x": cX, "y": cY}
-    if timeDebug: print(f"[TIME] Contour detection took: {time.time() - coordT:.4}s")
+    if timeDebug:
+        print(f"[TIME] Contour detection took: {time.time() - coordT:.4}s")
 
-    # Save each postcard (warped) image
-    if timeDebug: saveRT = time.time()
+    # save each postcard (warped) image
+    if timeDebug:
+        saveRT = time.time()
     savedCount = 0
     for cnt in postcardContours:
         scaledCnt = (cnt / resizeFactor).astype(np.int32)
@@ -206,11 +241,14 @@ for inputPath in inputFiles:
             continue
 
         srcPts = box.astype("float32")
-        dstPts = np.array([[0, height - 1], [0, 0], [width - 1, 0], [width - 1, height - 1]], dtype="float32")
+        dstPts = np.array(
+            [[0, height - 1], [0, 0], [width - 1, 0], [width - 1, height - 1]],
+            dtype="float32",
+        )
         M = cv2.getPerspectiveTransform(srcPts, dstPts)
         warped = cv2.warpPerspective(image, M, (width, height))
 
-        # Rotate portrait cards to landscape
+        # Rotate cards to landscape
         if warped.shape[0] > warped.shape[1]:
             warped = cv2.rotate(warped, cv2.ROTATE_90_CLOCKWISE)
 
@@ -221,14 +259,16 @@ for inputPath in inputFiles:
         index += 1
         savedCount += 1
         # print(f"[DEBUG] Box size: {width}x{height}")
-        if timeDebug: print(f"[TIME] Contour detection took: {time.time() - saveRT:.4}s")
+        if timeDebug:
+            print(f"[TIME] Contour detection took: {time.time() - saveRT:.4}s")
 
-    # Mark processed and log
+    # Mark files and log
     processedFiles.add(baseName)
     finalContoursDebug.append(f"{baseName}: {savedCount}")
-    timing = (time.time() - startTime)
+    timing = time.time() - startTime
     print(f"[DONE] {baseName} in {timing:.2}s")
 
+# === SAVE FILES ===
 with open(seenPath, "w") as f:
     f.write("\n".join(sorted(processedFiles)))
 

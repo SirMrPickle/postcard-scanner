@@ -47,7 +47,7 @@ with open(backCoordsPath, "r") as f:
 
 # === IoU-style matcher ===
 def boxMatch(fx, fy, bx, by):
-    half = 125
+    half = 150
     frontRect = Polygon(
         [
             (fx - half, fy - half),
