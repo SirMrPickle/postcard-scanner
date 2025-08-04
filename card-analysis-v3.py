@@ -1,30 +1,12 @@
-import os
-from huggingface_hub import InferenceClient
+import requests
+from PIL import Image
 
-client = InferenceClient(
-    provider="cohere",
-    api_key=os.environ["HF_TOKEN"],
-)
+API_URL = "https://router.huggingface.co/v1/chat/completions"
+with open("HF_TOKEN", "r") as f: HF_TOKEN = f.read()
 
-completion = client.chat.completions.create(
-    model="CohereLabs/aya-vision-8b",
-    messages=[
-        {
-            "role": "user",
-            "content": [
-                {
-                    "type": "text",
-                    "text": "Describe this image in one sentence."
-                },
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": "https://cdn.britannica.com/61/93061-050-99147DCE/Statue-of-Liberty-Island-New-York-Bay.jpg"
-                    }
-                }
-            ]
-        }
-    ],
-)
+img = Image.open("your_image.png")
 
-print(completion.choices[0].message)
+prompt = "Describe the image"
+payload = img
+
+print(requests.post(API_URL, headers={"Authorization": "Bearer YOUR_HUGGINGFACE_TOKEN"}, json={"inputs": prompt and payload}).json())
