@@ -1,79 +1,83 @@
 # Postcard Digitization and Matching Tool
 
-This project is a collection of Python scripts that automate the digitization of physical postcards. It is optimized for batch processing with speed, consistency, and minimal human interaction.
+A high-throughput Python-based pipeline for digitizing, cropping, and matching physical postcard scans. Built for speed, consistency, and minimal manual intervention — optimized for batch processing and AWS-scale extension.
 
 ## 🔧 Features
 
-- Automatically detects and crops postcards from raw `.png` scan images.
-- Matches front and back postcard images using geometric overlap logic.
-- Saves debug images with colored overlays:
-  - ✅ **Green**: Accepted/Matched cards
-  - 🔴 **Red**: Front-only detections
-  - 🔵 **Blue**: Back-only detections
-  - ⚪ **White**: All detected closed contours
-- Persistent caching of coordinate and contour data for efficient re-runs.
-- Configurable output and debug folder structure.
-- Parallelized processing for speed.
+- 🔍 **Auto-detects** and crops postcard regions from raw `.png` scans (front and back).
+- 🧠 **Smart matching** of front and back images based on contour geometry (overlap area, center point proximity).
+- 🖼️ Saves debug overlays for visual QA:
+  - ✅ **Green**: Successful front-back matches
+  - 🔴 **Red**: Orphaned front detections
+  - 🔵 **Blue**: Orphaned back detections
+  - ⚪ **White**: All closed contours detected
+- 🧠 **Warping & alignment** based on detected quadrilateral box
+- 💾 **Persistent caching** of contour and box data in JSON
+- 🧵 **Threaded matching** for faster execution
+- 💻 Built to support AWS / SageMaker pipelines (e.g., Textract + RDS)
 
 ## 🚀 How to Use
 
-### 1. Prepare Your Scans
+### 1. Drop Your Scans
 
-Place your raw scanned `.png` files into the `_INPUT/` directory.
-Each scan should be named consistently:
+Place your raw `.png` scans into the `_INPUT/` directory with consistent naming:
 
-```
 sc#-front.png
 sc#-back.png
-```
 
 For example:
 
-```
 sc7-front.png
 sc7-back.png
-```
 
-### 2. Run the Scripts
+### 2. Run the Pipeline
 
-You can run each script manually:
+**Manual Steps (per-stage debugging):**
 
-```bash
-python3 front-scanner-v4.py   # Processes front images
-python3 back-scanner-v4.py    # Processes back images
-python3 combine-images-v3.py  # Matches fronts with backs and saves debug overlays
-```
+python3 front-scanner-v4.py   # Detects & crops fronts
+python3 back-scanner-v4.py    # Detects & crops backs
+python3 combine-v5.py         # Matches front↔back and saves combined results
 
-Or, run the master script:
+**All-in-One Execution:**
 
-```bash
-python3 scan-master.py        # Threaded script to run everything at once
-```
+python3 scan-master.py        # End-to-end threaded pipeline
 
-## 📁 Review Output
+## 📁 Output Structure
 
-- Cropped postcard images:
-  - `output/front/`
-  - `output/back/`
-- Visual match overlays and contour debugging:
-  - `debug/final/`
+### ✅ Results
 
-## ⚙️ Dependencies
+- output/front/ — Cropped front images
+- output/back/ — Cropped back images
+- output/matched/ — Combined front-back postcards
+
+### 🧪 Debugging & QA
+
+- debug/frontCoords.json — Cropping data (fronts)
+- debug/backCoords.json — Cropping data (backs)
+- debug/final/ — Matching overlays & composite debug images
+- debug/contourData.txt — All contour metadata
+- debug/cardContours.png — All card-sized contours
+- debug/topContours.png — Top-ranked card shapes
+- debug/closedBoxes.png — Final accepted boxes
+
+## ⚙️ Requirements
 
 - Python 3.8+
-- OpenCV
-- NumPy
-- Shapely
+- opencv-python
+- numpy
+- shapely
 - tqdm
 
 Install them with:
 
-```bash
-pip install opencv-python shapely numpy tqdm
-```
+``pip install opencv-python numpy shapely tqdm``
 
-## 📌 Notes
+## 📌 Notes & Tips
 
-- `_SIMPLE/` is used for intermediate images post-cleanup.
-- Scripts are optimized for long, rectangular postcards on a black scan background.
-- The project assumes each scan has a *front* and *back* counterpart.
+- This tool assumes your cards are:
+  - Scanned on a solid **black** background
+  - Rectangular and longer on one edge
+
+## 🛠️ Disclamer
+
+This markdown file was created with the help of AI.
