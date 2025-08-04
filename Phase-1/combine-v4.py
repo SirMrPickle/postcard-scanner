@@ -22,11 +22,12 @@ outputDir = "output/final"
 
 frontCoordsPath = "debug/frontCoords.json"
 backCoordsPath = "debug/backCoords.json"
+cardMatchingPath = "debug/cardMatches.txt"
 
 weakCardMatches = []
 weakScanMatches = []
 noScanMatches = []
-
+cardMatches = ""
 
 # === For image saving and stacking ===
 DPI = 250
@@ -47,7 +48,7 @@ with open(backCoordsPath, "r") as f:
 
 # === IoU-style matcher ===
 def boxMatch(fx, fy, bx, by):
-    half = 150
+    half = 150 # how big the boxes are going to be. Value * 2 H and W
     frontRect = Polygon(
         [
             (fx - half, fy - half),
@@ -159,6 +160,7 @@ for frontScanKey, frontCards in frontData.items():
             bx, by = backCards[bestMatch]["x"], backCards[bestMatch]["y"]
             area, _ = boxMatch(fx, fy, bx, by)
             print(f"→ {frontCardID} ⇔ {bestMatch} (Overlap area = {area:.2f})")
+            cardMatches+= "[" + frontCardID + "," + bestMatch + "]\n"
 
             # track bad matches as well as plain old `none`s
             if area == 0:
@@ -245,6 +247,8 @@ weakScanMatches = sorted(set(weakScanMatches))
 weakCardMatches = sorted(set(weakCardMatches))
 noScanMatches = sorted(set(noScanMatches))
 
+with open(cardMatchingPath, "w") as f:
+    f.write(cardMatches)
 
 print(f"\n[DEBUG] {len(weakScanMatches)} scans with weak matches: {weakScanMatches}")
 print(f"[DEBUG] {len(weakCardMatches)} cards with weak matches: {weakCardMatches}")

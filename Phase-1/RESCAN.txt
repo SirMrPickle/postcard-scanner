@@ -90,3 +90,8 @@ sc197-back: 5
 [DEBUG] 39 cards with weak matches: ['card0054', 'card0151', 'card0418', 'card0425', 'card0489', 'card0527', 'card0548', 'card0595', 'card0601', 'card0638', 'card0651', 'card0652', 'card0653', 'card0656', 'card0668', 'card0721', 'card0722', 'card0768', 'card0771', 'card0772', 'card0773', 'card0799', 'card0800', 'card0811', 'card0833', 'card0834', 'card0835', 'card0842', 'card0933', 'card0934', 'card0942', 'card0974', 'card1037', 'card1040', 'card1088', 'card1112', 'card1123', 'card1135', 'card1153']
 [DEBUG] 11 scans with NO matches: ['sc112', 'sc121', 'sc129', 'sc130', 'sc136', 'sc140', 'sc141', 'sc157', 'sc158', 'sc174', 'sc186']
 
+Missing Contours:
+sc136-back: 5
+    =1
+
+→ card0668 ⇔ card0663 (Overlap area = 0.00)
